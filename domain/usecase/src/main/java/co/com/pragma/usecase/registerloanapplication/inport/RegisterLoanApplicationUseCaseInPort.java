@@ -1,9 +1,9 @@
-package co.com.pragma.model.application.gateways;
+package co.com.pragma.usecase.registerloanapplication.inport;
 
 import co.com.pragma.model.application.Application;
 import reactor.core.publisher.Mono;
 
-public interface ApplicationRepository {
+public interface RegisterLoanApplicationUseCaseInPort {
     Mono<Application> saveApplication(Application application);
 
 }
