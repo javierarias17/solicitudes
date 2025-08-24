@@ -22,3 +22,12 @@ management:
         enabled: true
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"
+
+adapters:
+  r2dbc:
+    host: "localhost"
+    port: 5432
+    database: "solicitudes"
+    schema: "public"
+    username: "postgres"
+    password: "sasa1234"
