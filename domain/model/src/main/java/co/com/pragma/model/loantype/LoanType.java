@@ -1,4 +1,4 @@
-package co.com.pragma.model.loan-type;
+package co.com.pragma.model.loantype;
 import lombok.Builder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,5 +10,5 @@ import lombok.Setter;
 //@NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class Loan-type {
+public class LoanType {
 }
