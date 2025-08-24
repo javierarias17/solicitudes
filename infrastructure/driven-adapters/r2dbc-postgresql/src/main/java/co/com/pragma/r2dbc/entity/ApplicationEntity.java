@@ -5,6 +5,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.math.BigDecimal;
+
 @Table("application")
 @AllArgsConstructor
 @NoArgsConstructor
@@ -16,11 +18,13 @@ public class ApplicationEntity {
     @Id
     @Column("application_id")
     private Long id;
-    private Double amount;
+    private BigDecimal amount;
     private Long term;
     private String email;
     @Column("status_id")
     private Long statusId;
     @Column("loan_type_id")
     private Long loanTypeId;
+    @Column("identity_document")
+    private String identityDocument;
 }

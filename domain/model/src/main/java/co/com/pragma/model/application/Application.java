@@ -1,5 +1,7 @@
 package co.com.pragma.model.application;
 import lombok.*;
+
+import java.math.BigDecimal;
 //import lombok.NoArgsConstructor;
 
 
@@ -11,9 +13,10 @@ import lombok.*;
 public class Application {
 
     private Long id;
-    private Double amount;
+    private BigDecimal amount;
     private Long term;
     private String email;
     private Long statusId;
     private Long loanTypeId;
+    private String identityDocument;
 }

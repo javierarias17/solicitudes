@@ -1,5 +1,7 @@
 package co.com.pragma.model.loantype;
 import lombok.*;
+
+import java.math.BigDecimal;
 //import lombok.NoArgsConstructor;
 
 
@@ -12,8 +14,8 @@ public class LoanType {
 
     private Long id;
     private String name;
-    private Double minAmount;
-    private Double maxAmount;
+    private BigDecimal minAmount;
+    private BigDecimal maxAmount;
     private Double interestRate;
     private Boolean automaticValidation;
 

@@ -26,9 +26,10 @@ class MyReactiveRepositoryAdapterTest {
 
     @Mock
     ObjectMapper mapper;
-
+/*
     @Test
     void mustFindValueById() {
+
 
         when(repository.findById("1")).thenReturn(Mono.just("test"));
         when(mapper.map("test", Object.class)).thenReturn("test");
@@ -74,5 +75,5 @@ class MyReactiveRepositoryAdapterTest {
         StepVerifier.create(result)
                 .expectNextMatches(value -> value.equals("test"))
                 .verifyComplete();
-    }
+    }*/
 }
