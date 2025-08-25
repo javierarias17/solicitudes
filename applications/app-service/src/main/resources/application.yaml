@@ -20,24 +20,24 @@ management:
     health:
       probes:
         enabled: true
+  health:
+    circuitbreakers:
+      enabled: true
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8086"
-
 springdoc:
   api-docs:
-    path: /v3/api-docs
+    path: "/v3/api-docs"
     enabled: true
   swagger-ui:
-    path: /swagger-ui.html
+    path: "/swagger-ui.html"
     enabled: true
     try-it-out-enabled: true
   show-actuator: true
-
 routes:
   paths:
     application: "/api/v1/solicitud"
     applicationById: "/api/v1/solicitud/{id}"
-
 adapters:
   r2dbc:
     host: "localhost"
@@ -46,3 +46,28 @@ adapters:
     schema: "public"
     username: "postgres"
     password: "sasa1234"
+adapter:
+  restconsumer:
+    timeout: 5000
+    url: "http://localhost:8080"
+resilience4j:
+  circuitbreaker:
+    instances:
+      testGet:
+        registerHealthIndicator: true
+        failureRateThreshold: 50
+        slowCallRateThreshold: 50
+        slowCallDurationThreshold: "2s"
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 10
+        waitDurationInOpenState: "10s"
+      testPost:
+        registerHealthIndicator: true
+        failureRateThreshold: 50
+        slowCallRateThreshold: 50
+        slowCallDurationThreshold: "2s"
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 10
+        waitDurationInOpenState: "10s"
