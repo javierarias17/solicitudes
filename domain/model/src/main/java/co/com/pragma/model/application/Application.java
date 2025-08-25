@@ -2,8 +2,6 @@ package co.com.pragma.model.application;
 import lombok.*;
 
 import java.math.BigDecimal;
-//import lombok.NoArgsConstructor;
-
 
 @Getter
 @Setter

@@ -17,7 +17,7 @@ public class LoanTypeReactiveRepositoryAdapter extends ReactiveAdapterOperations
     }
 
     @Override
-    public Mono<LoanType> findById(Long id) {
-        return super.findById(id);
+    public Mono<Boolean> existsById(Long id) {
+        return repository.existsById(id);
     }
 }

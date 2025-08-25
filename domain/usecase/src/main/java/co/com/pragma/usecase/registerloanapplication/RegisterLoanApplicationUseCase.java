@@ -10,21 +10,20 @@ import co.com.pragma.usecase.registerloanapplication.inport.RegisterLoanApplicat
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
-import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
 public class RegisterLoanApplicationUseCase implements RegisterLoanApplicationUseCaseInPort {
 
-    private final static Long PENDENT_STATUS=1L;
+    private static final Long PENDENT_STATUS=1L;
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
 
     private final ApplicationRepository applicationRepository;
     private final StatusRepository statusRepository;
     private final LoanTypeRepository loanTypeRepository;
-
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
-
 
     private static final Logger LOGGER=Logger.getLogger("InfoLogging");
 
@@ -50,8 +49,17 @@ public class RegisterLoanApplicationUseCase implements RegisterLoanApplicationUs
     }
 
     private Mono<Void> validateAll(Application application) {
-        java.util.Map<String, String> errors = new java.util.HashMap<>();
+        Map<String, String> errors = new HashMap<>();
+        // Validaciones en memoria
+        validateRequiredFields(application, errors);
+        if (!errors.isEmpty()) {
+            return Mono.error(new ValidationException(errors));
+        }
+        // Validaciones contra BD
+        return validateWithDatabase(application, errors);
+    }
 
+    private void validateRequiredFields(Application application, Map<String, String> errors) {
         if (application.getAmount() == null) {
             errors.put("amount", "Amount is required");
         }
@@ -66,26 +74,18 @@ public class RegisterLoanApplicationUseCase implements RegisterLoanApplicationUs
         } else if (!EMAIL_PATTERN.matcher(application.getEmail()).matches()) {
             errors.put("email", "Invalid email format");
         }
-
         if (application.getIdentityDocument() == null || application.getIdentityDocument().isBlank()) {
             errors.put("identityDocument", "Identity document is required");
         }
+    }
 
-        if (!errors.isEmpty()) {
-            return Mono.error(new ValidationException(errors));
-        }
-
-        // Validaciones contra la BD
+    private Mono<Void> validateWithDatabase(Application application, Map<String, String> errors) {
         return Mono.zip(
-                loanTypeRepository.findById(application.getLoanTypeId()).hasElement(),
-                statusRepository.findById(PENDENT_STATUS).hasElement()
+                loanTypeRepository.existsById(application.getLoanTypeId()),
+                statusRepository.existsById(PENDENT_STATUS)
         ).flatMap(results -> {
-            boolean loanTypeExists = results.getT1();
-            boolean statusExists = results.getT2();
-
-            if (!loanTypeExists) errors.put("loanTypeId", "Loan type does not exist");
-            if (!statusExists) errors.put("statusId", "Status does not exist");
-
+            if (!results.getT1()) errors.put("loanTypeId", "Loan type does not exist");
+            if (!results.getT2()) errors.put("statusId", "Status does not exist");
             return errors.isEmpty() ? Mono.empty() : Mono.error(new ValidationException(errors));
         });
     }

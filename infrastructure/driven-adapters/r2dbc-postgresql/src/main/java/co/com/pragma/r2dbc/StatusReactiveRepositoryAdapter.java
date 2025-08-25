@@ -17,7 +17,7 @@ public class StatusReactiveRepositoryAdapter extends ReactiveAdapterOperations<S
     }
 
     @Override
-    public Mono<Status> findById(Long id) {
-        return super.findById(id);
+    public Mono<Boolean> existsById(Long id) {
+        return repository.existsById(id);
     }
 }

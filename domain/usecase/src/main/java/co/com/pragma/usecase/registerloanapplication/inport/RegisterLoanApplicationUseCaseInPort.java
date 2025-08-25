@@ -5,5 +5,4 @@ import reactor.core.publisher.Mono;
 
 public interface RegisterLoanApplicationUseCaseInPort {
     Mono<Application> saveApplication(Application application);
-
 }

@@ -13,10 +13,8 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 @Configuration
 @RequiredArgsConstructor
 public class RouterRest {
-
     private final ApplicationPath applicationPath;
     private final Handler handler;
-
 
     @Bean
     public RouterFunction<ServerResponse> routerFunction(Handler handler) {

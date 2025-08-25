@@ -2,7 +2,6 @@ package co.com.pragma.api;
 
 import co.com.pragma.api.dto.ApplicationDTO;
 import co.com.pragma.api.mapper.ApplicationDTOMapper;
-import co.com.pragma.model.application.Application;
 import co.com.pragma.usecase.exceptions.TechnicalException;
 import co.com.pragma.usecase.exceptions.ValidationException;
 import co.com.pragma.usecase.registerloanapplication.inport.RegisterLoanApplicationUseCaseInPort;
@@ -35,21 +34,15 @@ public class Handler {
                 .onErrorResume(ServerWebInputException.class, e -> {
                     Map<String, String> errors = new HashMap<>();
                     errors.put("Invalid request body:", e.getMostSpecificCause().getMessage());
-                    return ServerResponse.badRequest()
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue(errors);
+                    return ServerResponse.badRequest().contentType(MediaType.APPLICATION_JSON).bodyValue(errors);
                 })
                 // Manejo de validaciones -> 400
                 .onErrorResume(ValidationException.class, e ->
-                        ServerResponse.badRequest()
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .bodyValue(e.getErrors())
+                        ServerResponse.badRequest().contentType(MediaType.APPLICATION_JSON).bodyValue(e.getErrors())
                 )
                 // Manejo de excepciones inesperadas -> 500
                 .onErrorResume(TechnicalException.class, e ->
-                        ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                .contentType(MediaType.TEXT_PLAIN)
-                                .bodyValue(e.getMessage())
+                        ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.TEXT_PLAIN).bodyValue(e.getMessage())
                 );
     }
 }
