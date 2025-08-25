@@ -6,6 +6,7 @@ import co.com.pragma.r2dbc.entity.ApplicationEntity;
 import co.com.pragma.r2dbc.helper.ReactiveAdapterOperations;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Mono;
 
 @Repository
@@ -16,12 +17,18 @@ public class ApplicationReactiveRepositoryAdapter extends ReactiveAdapterOperati
         ApplicationReactiveRepository
 > implements ApplicationRepository {
 
-    public ApplicationReactiveRepositoryAdapter(ApplicationReactiveRepository repository, ObjectMapper mapper) {
+    private final TransactionalOperator transactionalOperator;
+
+    public ApplicationReactiveRepositoryAdapter(ApplicationReactiveRepository repository, ObjectMapper mapper, TransactionalOperator transactionalOperator) {
         super(repository, mapper, d -> mapper.map(d, Application.class));
+        this.transactionalOperator = transactionalOperator;
     }
 
     @Override
     public Mono<Application> saveApplication(Application application) {
-        return super.save(application);
+        return transactionalOperator.execute(status ->
+                        super.save(application)
+                ).single()
+                .onErrorResume(Mono::error);
     }
 }
