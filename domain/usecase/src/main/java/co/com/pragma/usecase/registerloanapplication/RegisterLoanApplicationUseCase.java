@@ -33,6 +33,8 @@ public class RegisterLoanApplicationUseCase implements RegisterLoanApplicationUs
                     if (!errors.isEmpty()) {
                         return Mono.error(new BusinessException(errors));
                     }
+                    application.setId(null);
+                    application.setStatusId(PENDENT_STATUS);
                     return applicationRepository.saveApplication(application);
                 });
     }

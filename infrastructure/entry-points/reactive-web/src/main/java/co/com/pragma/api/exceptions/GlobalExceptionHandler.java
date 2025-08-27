@@ -12,9 +12,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.support.WebExchangeBindException;
 import org.springframework.web.reactive.function.server.*;
+import reactor.core.Exceptions;
 import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
@@ -46,19 +46,16 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
         Map<String, Object> responseBody = new HashMap<>();
         responseBody.put(STATUS, responseCode.value());
 
-        if (throwable instanceof WebExchangeBindException bindException) {
-            // Validation errors on DTO binding
-            Map<String, String> fieldErrors = bindException.getFieldErrors()
-                    .stream()
-                    .collect(Collectors.toMap(
-                            FieldError::getField,
-                            fe -> fe.getDefaultMessage(),
-                            (first, second) -> first
-                    ));
-            responseBody.put(FIELDS, fieldErrors);
+        if (!(throwable instanceof WebExchangeBindException)
+                && !Exceptions.isMultiple(throwable)
+                && !(throwable instanceof ConstraintViolationException)
+                && !(throwable instanceof BusinessException)){
 
+            logger.error("Error handled: {}", throwable.getMessage(), throwable);
+            responseCode = HttpStatus.INTERNAL_SERVER_ERROR;
+            responseBody.put("message", "An unexpected error occurred. Please contact the administrator.");
+            responseBody.put(STATUS, HttpStatus.INTERNAL_SERVER_ERROR.value());
         } else if (throwable instanceof ConstraintViolationException violationException) {
-            // Validation errors thrown manually with Validator
             Map<String, String> violations = violationException.getConstraintViolations()
                     .stream()
                     .collect(Collectors.toMap(
@@ -69,13 +66,7 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
             responseBody.put(FIELDS, violations);
 
         } else if (throwable instanceof BusinessException businessException) {
-            // Business exception with custom errors
             responseBody.put(FIELDS, businessException.getErrors());
-
-        } else {
-            logger.error("Error handled: {}", throwable.getMessage(), throwable);
-            responseCode = HttpStatus.INTERNAL_SERVER_ERROR;
-            responseBody.put("message", "An unexpected error occurred. Please contact the administrator.");
         }
 
         return ServerResponse.status(responseCode)
