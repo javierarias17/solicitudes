@@ -4,7 +4,7 @@ import co.com.pragma.model.application.Application;
 import co.com.pragma.model.application.gateways.ApplicationRepository;
 import co.com.pragma.model.loantype.gateways.LoanTypeRepository;
 import co.com.pragma.model.status.gateways.StatusRepository;
-import co.com.pragma.usecase.exceptions.BusinessException;
+import co.com.pragma.usecase.exceptions.ValidationException;
 import co.com.pragma.usecase.registerloanapplication.RegisterLoanApplicationUseCase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -72,8 +72,8 @@ class RegisterLoanApplicationUseCaseTest {
 
         StepVerifier.create(result)
                 .expectErrorMatches(throwable ->
-                        throwable instanceof BusinessException &&
-                                ((BusinessException) throwable).getErrors().containsKey("loanTypeId")
+                        throwable instanceof ValidationException &&
+                                ((ValidationException) throwable).getErrors().containsKey("loanTypeId")
                 ).verify();
     }
 
@@ -92,8 +92,8 @@ class RegisterLoanApplicationUseCaseTest {
 
         StepVerifier.create(result)
                 .expectErrorMatches(throwable ->
-                        throwable instanceof BusinessException &&
-                                ((BusinessException) throwable).getErrors().containsKey("statusId")
+                        throwable instanceof ValidationException &&
+                                ((ValidationException) throwable).getErrors().containsKey("statusId")
                 ).verify();
     }
 
@@ -112,9 +112,9 @@ class RegisterLoanApplicationUseCaseTest {
 
         StepVerifier.create(result)
                 .expectErrorMatches(throwable ->
-                        throwable instanceof BusinessException &&
-                                ((BusinessException) throwable).getErrors().containsKey("statusId") &&
-                                ((BusinessException) throwable).getErrors().containsKey("loanTypeId")
+                        throwable instanceof ValidationException &&
+                                ((ValidationException) throwable).getErrors().containsKey("statusId") &&
+                                ((ValidationException) throwable).getErrors().containsKey("loanTypeId")
                 ).verify();
     }
 

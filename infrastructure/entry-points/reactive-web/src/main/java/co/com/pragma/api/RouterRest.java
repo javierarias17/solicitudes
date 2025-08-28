@@ -3,8 +3,6 @@ package co.com.pragma.api;
 import co.com.pragma.api.config.ApplicationPath;
 import co.com.pragma.api.dto.ApplicationDTO;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,10 +10,8 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.RouterOperation;
-import org.springdoc.core.annotations.RouterOperations;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
@@ -52,7 +48,7 @@ public class RouterRest {
                             }
                     )
             ),
-            responses = { @ApiResponse(responseCode = "200", description = "Created",
+            responses = { @ApiResponse(responseCode = "201", description = "Created",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ApplicationDTO.class),
@@ -78,7 +74,6 @@ public class RouterRest {
                                     @ExampleObject(
                                             value = """
                                                     {
-                                                      "status": 400,
                                                       "fields": {
                                                             "amount": "Amount is required",
                                                             "identityDocument": "Identity document is required and cannot be empty",
@@ -96,7 +91,6 @@ public class RouterRest {
                                     @ExampleObject(
                                             value = """
                                                     {
-                                                      "status": 500,
                                                       "message": "An unexpected error occurred. Please contact the administrator."
                                                     }
                                                     """

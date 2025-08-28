@@ -4,7 +4,7 @@ import co.com.pragma.model.application.Application;
 import co.com.pragma.model.application.gateways.ApplicationRepository;
 import co.com.pragma.model.loantype.gateways.LoanTypeRepository;
 import co.com.pragma.model.status.gateways.StatusRepository;
-import co.com.pragma.usecase.exceptions.BusinessException;
+import co.com.pragma.usecase.exceptions.ValidationException;
 import co.com.pragma.usecase.registerloanapplication.inport.RegisterLoanApplicationUseCaseInPort;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
@@ -31,7 +31,7 @@ public class RegisterLoanApplicationUseCase implements RegisterLoanApplicationUs
                     if (!tuple.getT2()) errors.put("statusId", "Status does not exist");
 
                     if (!errors.isEmpty()) {
-                        return Mono.error(new BusinessException(errors));
+                        return Mono.error(new ValidationException(errors));
                     }
                     application.setId(null);
                     application.setStatusId(PENDENT_STATUS);

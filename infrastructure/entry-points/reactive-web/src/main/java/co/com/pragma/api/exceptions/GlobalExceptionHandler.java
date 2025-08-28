@@ -1,6 +1,7 @@
 package co.com.pragma.api.exceptions;
 
 import co.com.pragma.usecase.exceptions.BusinessException;
+import co.com.pragma.usecase.exceptions.ValidationException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
@@ -24,8 +25,9 @@ import java.util.stream.Collectors;
 @Component
 public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
 
-    private static final String STATUS = "status";
     private static final String FIELDS = "fields";
+    private static final String MESSAGE = "message";
+
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     private static final HashMap<Class<?>, HttpStatus> httpStatusCodes = new HashMap<>();
 
@@ -36,7 +38,7 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
         this.setMessageWriters(serverCodecConfigurer.getWriters());
         this.setMessageReaders(serverCodecConfigurer.getReaders());
 
-        httpStatusCodes.put(BusinessException.class, HttpStatus.BAD_REQUEST);
+        httpStatusCodes.put(ValidationException.class, HttpStatus.BAD_REQUEST);
     }
 
     private Mono<ServerResponse> buildErrorResponse(ServerRequest request) {
@@ -44,17 +46,14 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
 
         HttpStatus responseCode = getResponseCode((Exception) throwable);
         Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put(STATUS, responseCode.value());
 
-        if (!(throwable instanceof WebExchangeBindException)
-                && !Exceptions.isMultiple(throwable)
-                && !(throwable instanceof ConstraintViolationException)
+        if (!(throwable instanceof WebExchangeBindException)//Errores en el mapeo en los datos de entrada
+                && !Exceptions.isMultiple(throwable)//Multiples exceptions lanzadas por el Reactor
+                && !(throwable instanceof ConstraintViolationException)//De jakarta.validation - Reglas de validacion de forma declarativa
                 && !(throwable instanceof BusinessException)){
-
             logger.error("Error handled: {}", throwable.getMessage(), throwable);
             responseCode = HttpStatus.INTERNAL_SERVER_ERROR;
-            responseBody.put("message", "An unexpected error occurred. Please contact the administrator.");
-            responseBody.put(STATUS, HttpStatus.INTERNAL_SERVER_ERROR.value());
+            responseBody.put(MESSAGE, "An unexpected error occurred. Please contact the administrator.");
         } else if (throwable instanceof ConstraintViolationException violationException) {
             Map<String, String> violations = violationException.getConstraintViolations()
                     .stream()
@@ -63,10 +62,12 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
                             ConstraintViolation::getMessage,
                             (first, second) -> first
                     ));
+            responseBody.put(MESSAGE, "Validation errors");
             responseBody.put(FIELDS, violations);
-
         } else if (throwable instanceof BusinessException businessException) {
-            responseBody.put(FIELDS, businessException.getErrors());
+            responseBody.put(MESSAGE, businessException.getMessage());
+            if(businessException.getErrors() !=null && !businessException.getErrors().isEmpty())
+                responseBody.put(FIELDS, businessException.getErrors());
         }
 
         return ServerResponse.status(responseCode)
