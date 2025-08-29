@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -25,6 +26,7 @@ public class Handler {
     private final ApplicationDTOMapper applicationDTOMapper;
     private final ValidationHandler validationHandler;
 
+    @PreAuthorize("hasAuthority(T(co.com.pragma.api.security.Role).APPLICANT.code)")
     public Mono<ServerResponse> listenSaveApplication(ServerRequest serverRequest) {
         return serverRequest.bodyToMono(ApplicationDTO.class)
                 .flatMap(validationHandler::validate)
