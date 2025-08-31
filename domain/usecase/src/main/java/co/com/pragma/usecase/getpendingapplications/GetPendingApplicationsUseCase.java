@@ -33,8 +33,16 @@ public class GetPendingApplicationsUseCase implements GetPendingApplicationsUseC
                             .distinct()
                             .toList();
 
+                    if (lstIdentityDocument.isEmpty()) {
+                        return Flux.fromIterable(applications);
+                    }
+
                     return authenticationGateway.getUsersByIdentityDocuments(lstIdentityDocument)
                             .flatMapMany(users -> {
+
+                                /*if (page == 5) {
+                                    return Flux.error(new RuntimeException("Simulación de error en AuthenticationGateway"));
+                                }*/
 
                                 Map<String, User> usersByIdentityDocument = users.stream()
                                         .collect(Collectors.toMap(User::getIdentityDocument, u -> u));
@@ -51,8 +59,4 @@ public class GetPendingApplicationsUseCase implements GetPendingApplicationsUseC
                             });
                 });
     }
-
-
-
-
 }
