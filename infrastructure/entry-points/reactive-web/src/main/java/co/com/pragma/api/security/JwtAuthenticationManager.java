@@ -1,5 +1,6 @@
 package co.com.pragma.api.security;
 
+import co.com.pragma.usecase.exceptions.InvalidTokenException;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,13 +24,19 @@ public class JwtAuthenticationManager implements ReactiveAuthenticationManager {
     @Override
     public Mono<Authentication> authenticate(Authentication authentication) {
         return Mono.just(authentication)
-                .map(auth -> jwtProvider.getClaims(auth.getCredentials().toString()))
-                .log()
-                .onErrorResume(e -> Mono.error(new Throwable("bad token")))
-                .map(claims -> new UsernamePasswordAuthenticationToken(
-                        claims.getSubject(),
-                        null,
-                        Stream.of(claims.get("roles"))
+                .flatMap(auth -> {
+                    String token = auth.getCredentials().toString();
+
+                    if (!jwtProvider.validate(token)) {
+                        return Mono.error(new InvalidTokenException("Invalid token"));
+                    }
+
+                    return Mono.just(jwtProvider.getPayload(token));
+                })
+                .map(payload -> new UsernamePasswordAuthenticationToken(
+                        payload.getSubject(),
+                        authentication.getCredentials(),
+                        Stream.of(payload.get("roles"))
                                 .map(role -> (List<Map<String, String>>) role)
                                 .flatMap(role -> role.stream()
                                         .map(r -> r.get("authority"))

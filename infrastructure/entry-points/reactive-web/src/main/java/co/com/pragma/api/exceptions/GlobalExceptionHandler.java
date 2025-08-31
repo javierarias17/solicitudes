@@ -1,6 +1,7 @@
 package co.com.pragma.api.exceptions;
 
 import co.com.pragma.usecase.exceptions.BusinessException;
+import co.com.pragma.usecase.exceptions.InvalidTokenException;
 import co.com.pragma.usecase.exceptions.ValidationException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -39,6 +40,7 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
         this.setMessageReaders(serverCodecConfigurer.getReaders());
 
         httpStatusCodes.put(ValidationException.class, HttpStatus.BAD_REQUEST);
+        httpStatusCodes.put(InvalidTokenException.class, HttpStatus.UNAUTHORIZED);
     }
 
     private Mono<ServerResponse> buildErrorResponse(ServerRequest request) {
@@ -47,7 +49,7 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
         HttpStatus responseCode = getResponseCode((Exception) throwable);
         Map<String, Object> responseBody = new HashMap<>();
 
-        if (!(throwable instanceof WebExchangeBindException)//Errores en el mapeo en los datos de entrada
+        if (!(throwable instanceof WebExchangeBindException)//Errores en el mapeo
                 && !Exceptions.isMultiple(throwable)//Multiples exceptions lanzadas por el Reactor
                 && !(throwable instanceof ConstraintViolationException)//De jakarta.validation - Reglas de validacion de forma declarativa
                 && !(throwable instanceof BusinessException)){
@@ -64,7 +66,12 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
                     ));
             responseBody.put(MESSAGE, "Validation errors");
             responseBody.put(FIELDS, violations);
-        } else if (throwable instanceof BusinessException businessException) {
+        }else if (throwable instanceof InvalidTokenException invalidTokenException) {
+            return ServerResponse.status(responseCode)
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .bodyValue(invalidTokenException.getMessage());
+        }
+        else if (throwable instanceof BusinessException businessException) {
             responseBody.put(MESSAGE, businessException.getMessage());
             if(businessException.getErrors() !=null && !businessException.getErrors().isEmpty())
                 responseBody.put(FIELDS, businessException.getErrors());

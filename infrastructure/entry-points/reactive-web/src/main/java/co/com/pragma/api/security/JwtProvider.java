@@ -6,14 +6,9 @@ import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.util.Collection;
-import java.util.Date;
-import java.util.stream.Stream;
 
 @Component
 public class JwtProvider {
@@ -25,27 +20,12 @@ public class JwtProvider {
     @Value("${jwt.expiration}")
     private Integer expiration;
 
-
-    public Collection<? extends GrantedAuthority> getAuthorities(String roles) {
-        return Stream.of(roles.split(", ")).map(SimpleGrantedAuthority::new)
-                .toList();
-    }
-
-    public Claims getClaims(String token) {
+    public Claims getPayload(String token) {
         return Jwts.parser()
                 .verifyWith(getKey(secret))
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
-    }
-
-    public String getSubject(String token) {
-        return Jwts.parser()
-                .verifyWith(getKey(secret))
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
     }
 
     public boolean validate(String token){
@@ -63,10 +43,10 @@ public class JwtProvider {
             LOGGER.error("token unsupported");
         } catch (MalformedJwtException e) {
             LOGGER.error("token malformed");
-        } catch (SignatureException e) {
-            LOGGER.error("bad signature");
         } catch (IllegalArgumentException e) {
             LOGGER.error("illegal args");
+        }catch (Exception e){
+            LOGGER.error("Invalid token");
         }
         return false;
     }

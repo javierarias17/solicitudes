@@ -1,6 +1,6 @@
 package co.com.pragma.api.security;
 
-import co.com.pragma.usecase.exceptions.InvalidCredentialsException;
+import co.com.pragma.usecase.exceptions.InvalidTokenException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
@@ -17,7 +17,11 @@ public class JwtFilter implements WebFilter {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getPath().value();
 
-        if (path.startsWith("/api/v1/login")/* || path.startsWith("/api/v1/usuarios")*/) {
+        if (path.startsWith("/webjars")
+                || path.startsWith("/v3/")
+                || path.startsWith("/swagger-ui/**")
+                || path.startsWith("/swagger-ui.html") /*
+            || path.startsWith("/api/v1/usuarios")*/) {
             return chain.filter(exchange);
         }
 
@@ -25,9 +29,10 @@ public class JwtFilter implements WebFilter {
             return chain.filter(exchange);
         String auth = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if(auth == null)
-            return Mono.error(new InvalidCredentialsException("no token was found"));
+            return Mono.error(new InvalidTokenException("Token not found"));
         if(!auth.startsWith("Bearer "))
-            return Mono.error(new InvalidCredentialsException("invalid auth"));
+            return Mono.error(new InvalidTokenException("Invalid auth"));
+
         String token = auth.replace("Bearer ", "");
         exchange.getAttributes().put("token", token);
         return chain.filter(exchange);
