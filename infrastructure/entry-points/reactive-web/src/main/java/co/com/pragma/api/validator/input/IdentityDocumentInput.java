@@ -1,6 +1,6 @@
 package co.com.pragma.api.validator.input;
 
-import co.com.pragma.api.common.ValidationPatterns;
+import co.com.pragma.api.common.validations.ValidationPatterns;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 

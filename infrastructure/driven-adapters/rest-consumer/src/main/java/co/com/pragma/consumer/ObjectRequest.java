@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -13,7 +15,5 @@ import lombok.Setter;
 @Builder(toBuilder = true)
 public class ObjectRequest {
 
-    private String val1;
-    private String val2;
-
+    List<String> lstIdentityDocument;
 }

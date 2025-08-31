@@ -8,7 +8,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 
 import static io.netty.channel.ChannelOption.CONNECT_TIMEOUT_MILLIS;
@@ -16,9 +19,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @Configuration
 public class RestConsumerConfig {
-
     private final String url;
-
     private final int timeout;
 
     public RestConsumerConfig(@Value("${adapter.restconsumer.url}") String url,
@@ -30,10 +31,23 @@ public class RestConsumerConfig {
     @Bean
     public WebClient getWebClient(WebClient.Builder builder) {
         return builder
-            .baseUrl(url)
-            .defaultHeader(HttpHeaders.CONTENT_TYPE, "application/json")
-            .clientConnector(getClientHttpConnector())
-            .build();
+                .baseUrl(url)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+                .filter((request, next) ->
+                        getCurrentToken().flatMap(token -> {
+                            ClientRequest newRequest = ClientRequest.from(request)
+                                    .headers(headers -> headers.setBearerAuth(token))
+                                    .build();
+                            return next.exchange(newRequest);
+                        })
+                )
+                .clientConnector(getClientHttpConnector())
+                .build();
+    }
+
+    private Mono<String> getCurrentToken() {
+        return ReactiveSecurityContextHolder.getContext()
+                .map(ctx -> ctx.getAuthentication().getCredentials().toString());
     }
 
     private ClientHttpConnector getClientHttpConnector() {

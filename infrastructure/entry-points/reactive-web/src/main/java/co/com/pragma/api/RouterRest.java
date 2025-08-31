@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
@@ -100,6 +101,7 @@ public class RouterRest {
             }
     ))
     public RouterFunction<ServerResponse> routerFunction(Handler handler) {
-        return route(POST(applicationPath.getApplication()), handler::listenSaveApplication);
+        return route(POST(applicationPath.getApplication()), handler::listenRegisterLoanApplication)
+                .andRoute(GET(applicationPath.getApplication()), handler::listenGetPendingApplications);
     }
 }

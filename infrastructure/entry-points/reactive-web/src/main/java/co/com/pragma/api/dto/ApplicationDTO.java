@@ -1,6 +1,6 @@
 package co.com.pragma.api.dto;
 
-import co.com.pragma.api.common.ValidationPatterns;
+import co.com.pragma.api.common.validations.ValidationPatterns;
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 

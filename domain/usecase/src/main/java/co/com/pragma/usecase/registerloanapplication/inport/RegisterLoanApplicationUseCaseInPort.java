@@ -4,5 +4,5 @@ import co.com.pragma.model.application.Application;
 import reactor.core.publisher.Mono;
 
 public interface RegisterLoanApplicationUseCaseInPort {
-    Mono<Application> saveApplication(Application application);
+    Mono<Application> execute(Application application);
 }

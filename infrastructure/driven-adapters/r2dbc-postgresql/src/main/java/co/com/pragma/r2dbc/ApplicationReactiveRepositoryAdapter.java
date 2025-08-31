@@ -1,12 +1,14 @@
 package co.com.pragma.r2dbc;
 
 import co.com.pragma.model.application.Application;
+import co.com.pragma.model.application.ApplicationSummary;
 import co.com.pragma.model.application.gateways.ApplicationRepository;
 import co.com.pragma.r2dbc.entity.ApplicationEntity;
 import co.com.pragma.r2dbc.helper.ReactiveAdapterOperations;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.reactive.TransactionalOperator;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Repository
@@ -30,5 +32,10 @@ public class ApplicationReactiveRepositoryAdapter extends ReactiveAdapterOperati
                         super.save(application)
                 ).single()
                 .onErrorResume(Mono::error);
+    }
+
+    @Override
+    public Flux<ApplicationSummary> findPendingApplicationsPaged(long limit, long offset){
+        return repository.findPendingApplicationsPaged(limit, offset);
     }
 }

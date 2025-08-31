@@ -1,5 +1,5 @@
 server:
-  port: 8086
+  port: 8088
 spring:
   application:
     name: "solicitudes"
@@ -24,7 +24,7 @@ management:
     circuitbreakers:
       enabled: true
 cors:
-  allowed-origins: "http://localhost:4200,http://localhost:8086"
+  allowed-origins: "http://localhost:4200,http://localhost:8088"
 springdoc:
   api-docs:
     path: "/v3/api-docs"
@@ -49,7 +49,7 @@ adapters:
 adapter:
   restconsumer:
     timeout: 5000
-    url: "http://localhost:8080"
+    url: "http://localhost:8085"
 resilience4j:
   circuitbreaker:
     instances:
