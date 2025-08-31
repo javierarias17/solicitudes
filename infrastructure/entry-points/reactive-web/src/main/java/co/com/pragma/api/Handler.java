@@ -3,18 +3,13 @@ package co.com.pragma.api;
 import co.com.pragma.api.dto.ApplicationDTO;
 import co.com.pragma.api.mapper.ApplicationDTOMapper;
 import co.com.pragma.api.mapper.ApplicationSummaryDTOMapper;
+import co.com.pragma.api.security.JwtProvider;
 import co.com.pragma.api.validator.ValidationHandler;
 import co.com.pragma.api.validator.input.PaginationRequest;
 import co.com.pragma.usecase.getpendingapplications.inport.GetPendingApplicationsUseCaseInPort;
 import co.com.pragma.usecase.registerloanapplication.inport.RegisterLoanApplicationUseCaseInPort;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -33,12 +28,21 @@ public class Handler {
     private final ApplicationSummaryDTOMapper applicationSummaryDTOMapper;
     private final ValidationHandler validationHandler;
 
+    private final JwtProvider jwtProvider;
+
+
     @PreAuthorize("hasAuthority(T(co.com.pragma.api.security.Role).APPLICANT.code)")
     public Mono<ServerResponse> listenRegisterLoanApplication(ServerRequest serverRequest) {
         return serverRequest.bodyToMono(ApplicationDTO.class)
                 .flatMap(validationHandler::validate)
                 .map(applicationDTOMapper::toModel)
-                .flatMap(registerLoanApplicationUseCaseInPort::execute)
+                .flatMap(application ->
+                        jwtProvider.getTokenInfo()
+                                .flatMap(tokenInfo ->
+                                        registerLoanApplicationUseCaseInPort.execute(application, tokenInfo.get("identityDocument"), tokenInfo.get("email"))
+                                )
+                )
+                //.flatMap(application -> registerLoanApplicationUseCaseInPort.execute(application, this.jwtProvider."" ))
                 .map(applicationDTOMapper::toResponse).flatMap(dto->ServerResponse.status(HttpStatus.CREATED).bodyValue(dto));
     }
 

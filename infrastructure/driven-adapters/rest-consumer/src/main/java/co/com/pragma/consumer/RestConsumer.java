@@ -45,7 +45,6 @@ public class RestConsumer implements AuthenticationGateway {
             .build();
         return client
                 .post()
-                .uri("/api/v1/usuarios/porIdentificacionDocumentos")
                 .body(Mono.just(request), ObjectRequest.class)
                 .retrieve()
                 .bodyToFlux(UserResponse.class).collectList();

@@ -6,9 +6,13 @@ import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 import javax.crypto.SecretKey;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class JwtProvider {
@@ -55,5 +59,26 @@ public class JwtProvider {
         byte[] secretBytes = Decoders.BASE64URL.decode(secret);
         return Keys.hmacShaKeyFor(secretBytes);
     }
+
+    public Mono<Map<String, String>> getTokenInfo() {
+        return ReactiveSecurityContextHolder.getContext()
+                .map(ctx -> ctx.getAuthentication().getCredentials().toString())
+                .map(this::getPayload)
+                .flatMap(claims -> {
+                    String identity = claims.get("identityDocument", String.class);
+                    String email = claims.get("email", String.class);
+
+                    if (identity == null || email == null) {
+                        return Mono.error(new IllegalStateException("Required claims not found in token"));
+                    }
+
+                    Map<String, String> info = new HashMap<>();
+                    info.put("identityDocument", identity);
+                    info.put("email", email);
+
+                    return Mono.just(info);
+                });
+    }
+
 }
 

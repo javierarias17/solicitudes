@@ -21,7 +21,10 @@ public class RegisterLoanApplicationUseCase implements RegisterLoanApplicationUs
     private final LoanTypeRepository loanTypeRepository;
 
     @Override
-    public Mono<Application> execute(Application application) {
+    public Mono<Application> execute(Application application,String identityDocumentToken, String emailToken ) {
+        application.setIdentityDocument(identityDocumentToken);
+        application.setEmail(emailToken);
+
         Mono<Boolean> existsLoanType = loanTypeRepository.existsById(application.getLoanTypeId());
         Mono<Boolean> existsStatus = statusRepository.existsById(PENDING_REVIEW_STATUS_ID);
         return Mono.zip(existsLoanType, existsStatus)
