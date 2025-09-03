@@ -1,14 +1,14 @@
 server:
-  port: 8088
+  port: ${SERVER_PORT}
 spring:
   application:
-    name: "solicitudes"
+    name: ${SPRING_APPLICATION_NAME}
   devtools:
     add-properties: false
   h2:
     console:
-      enabled: true
-      path: "/h2"
+      enabled: ${H2_CONSOLE_ENABLED}
+      path: ${H2_CONSOLE_PATH}
   profiles:
     include: null
 management:
@@ -24,7 +24,7 @@ management:
     circuitbreakers:
       enabled: true
 cors:
-  allowed-origins: "http://localhost:4200,http://localhost:8088"
+  allowed-origins: ${CORS_ALLOWED_ORIGINS}
 springdoc:
   api-docs:
     path: "/v3/api-docs"
@@ -40,16 +40,16 @@ routes:
     applicationById: "/api/v1/solicitud/{id}"
 adapters:
   r2dbc:
-    host: "localhost"
-    port: 5432
-    database: "solicitudes"
-    schema: "public"
-    username: "postgres"
-    password: "sasa1234"
+    host: ${DB_HOST}
+    port: ${DB_PORT}
+    database: ${DB_NAME}
+    schema: ${DB_SCHEMA}
+    username:  ${DB_USER}
+    password: ${DB_PASSWORD}
 adapter:
   restconsumer:
     timeout: 5000
-    url: "http://localhost:8085"
+    url: ${REST_CONSUMER_AUTENTICACION}
 resilience4j:
   circuitbreaker:
     instances:
@@ -74,5 +74,5 @@ resilience4j:
 
 
 jwt:
-  secret: "9a4f2c8d3b7a1e6f45c8a0b3f267d8b1d4e6f3c8a9d2b5f8e3a9c8b5f6v8a3d99a4f2c8d3b7a1e6f45c8a0b3f267d8b1d4e6f3c8a9d2b5f8e3a9c8b5f6v8a3d9"
-  expiration: 3600000
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION}
