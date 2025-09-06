@@ -51,9 +51,9 @@ adapter:
     timeout: 5000
     url: "${REST_CONSUMER_AUTENTICACION}"
   sqs:
-    region: "us-east-1"
-    queueUrl: "http://localhost:4566/000000000000/sample"
-    endpoint: "http://localhost:4566 # For localstack only"
+    region: "${AWS_REGION_SQS_QUEUE}"
+    queueUrl: "${SQS_QUEUE_URL}"
+    #endpoint:
 resilience4j:
   circuitbreaker:
     instances:

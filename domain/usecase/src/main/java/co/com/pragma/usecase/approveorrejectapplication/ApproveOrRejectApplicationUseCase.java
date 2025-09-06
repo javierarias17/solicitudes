@@ -2,7 +2,7 @@ package co.com.pragma.usecase.approveorrejectapplication;
 
 import co.com.pragma.model.application.Application;
 import co.com.pragma.model.application.gateways.ApplicationRepository;
-import co.com.pragma.model.status.gateways.StatusRepository;
+import co.com.pragma.model.outport.NotificationQueueGateway;
 import co.com.pragma.usecase.approveorrejectapplication.inport.ApproveOrRejectApplicationUseCaseInPort;
 import co.com.pragma.usecase.exceptions.ValidationException;
 import lombok.RequiredArgsConstructor;
@@ -12,11 +12,13 @@ import java.util.Map;
 
 @RequiredArgsConstructor
 public class ApproveOrRejectApplicationUseCase implements ApproveOrRejectApplicationUseCaseInPort {
-
-    private final Long REJECT_STATUS_ID=2L;
-    private final Long APPROVED_STATUS_ID=4L;
-    private final String STATUS_ID = "statusId";
+    private static final Long REJECT_STATUS_ID=2L;
+    private static final Long APPROVED_STATUS_ID=4L;
+    private static final String STATUS_ID = "statusId";
+    private static final String REJECTED = "RECHAZADO";
+    private static final String APPROVED = "APROBADO";
     private final ApplicationRepository applicationRepository;
+    private final NotificationQueueGateway notificationQueueGateway;
 
     @Override
     public Mono<Application> execute(Long id, Long statusId) {
@@ -39,7 +41,13 @@ public class ApproveOrRejectApplicationUseCase implements ApproveOrRejectApplica
                     }
 
                     application.setStatusId(statusId);
-                    return applicationRepository.saveApplication(application);
+                    return applicationRepository.saveApplication(application)
+                            .flatMap(savedApp ->
+                                    notificationQueueGateway.sendNotification(
+                                            savedApp.getEmail(),
+                                            statusId.equals(APPROVED_STATUS_ID) ? APPROVED : REJECTED
+                                    ).thenReturn(savedApp)
+                            );
                 });
     }
 }
