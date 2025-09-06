@@ -10,7 +10,8 @@ import reactor.core.publisher.Flux;
 public interface ApplicationReactiveRepository extends ReactiveCrudRepository<ApplicationEntity, Long>, ReactiveQueryByExampleExecutor<ApplicationEntity> {
 
     @Query("""
-        SELECT a.amount,
+        SELECT a.application_id,
+               a.amount,
                a.term,
                a.email,
                l.name AS loan_type,

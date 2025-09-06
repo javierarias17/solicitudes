@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 public class ApplicationSummary {
+    private Long id;
     private BigDecimal amount;
     private Long term;
     private String email;

@@ -5,7 +5,9 @@ import co.com.pragma.api.mapper.ApplicationDTOMapper;
 import co.com.pragma.api.mapper.ApplicationSummaryDTOMapper;
 import co.com.pragma.api.security.JwtProvider;
 import co.com.pragma.api.validator.ValidationHandler;
+import co.com.pragma.api.validator.input.ApproveOrRejectApplicationInput;
 import co.com.pragma.api.validator.input.PaginationRequest;
+import co.com.pragma.usecase.approveorrejectapplication.inport.ApproveOrRejectApplicationUseCaseInPort;
 import co.com.pragma.usecase.getpendingapplications.inport.GetPendingApplicationsUseCaseInPort;
 import co.com.pragma.usecase.registerloanapplication.inport.RegisterLoanApplicationUseCaseInPort;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,7 @@ public class Handler {
 
     private final RegisterLoanApplicationUseCaseInPort registerLoanApplicationUseCaseInPort;
     private final GetPendingApplicationsUseCaseInPort getPendingApplicationsUseCaseInPort;
+    private final ApproveOrRejectApplicationUseCaseInPort approveOrRejectApplicationUseCaseInPort;
     private final ApplicationDTOMapper applicationDTOMapper;
     private final ApplicationSummaryDTOMapper applicationSummaryDTOMapper;
     private final ValidationHandler validationHandler;
@@ -42,7 +45,6 @@ public class Handler {
                                         registerLoanApplicationUseCaseInPort.execute(application, tokenInfo.get("identityDocument"), tokenInfo.get("email"))
                                 )
                 )
-                //.flatMap(application -> registerLoanApplicationUseCaseInPort.execute(application, this.jwtProvider."" ))
                 .map(applicationDTOMapper::toResponse).flatMap(dto->ServerResponse.status(HttpStatus.CREATED).bodyValue(dto));
     }
 
@@ -60,9 +62,29 @@ public class Handler {
                         .flatMap(list -> ServerResponse.ok().bodyValue(list)));
     }
 
+    @PreAuthorize("hasAuthority(T(co.com.pragma.api.security.Role).ADVISOR.code)")
+    public Mono<ServerResponse> listenApproveOrRejectApplication(ServerRequest serverRequest) {
+        Long id = safeParseLong(serverRequest.queryParam("id"));
+        Long statusId =safeParseLong(serverRequest.queryParam("statusId"));
+
+        ApproveOrRejectApplicationInput approveOrRejectApplicationInput = new ApproveOrRejectApplicationInput(id, statusId);
+
+        return validationHandler.validate(approveOrRejectApplicationInput)
+                .flatMap(params -> approveOrRejectApplicationUseCaseInPort.execute(params.id(), params.statusId())
+                        .map(applicationDTOMapper::toResponse).flatMap(dto->ServerResponse.status(HttpStatus.OK).bodyValue(dto)));
+    }
+
     private Integer safeParseInt(Optional<String> param) {
         try {
             return param.isPresent() ? Integer.parseInt(param.get()) : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private Long safeParseLong(Optional<String> param) {
+        try {
+            return param.isPresent() ? Long.parseLong(param.get()) : null;
         } catch (NumberFormatException e) {
             return null;
         }
