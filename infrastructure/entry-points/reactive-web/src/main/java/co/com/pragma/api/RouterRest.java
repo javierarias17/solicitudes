@@ -132,14 +132,14 @@ public class RouterRest {
                                             in = ParameterIn.QUERY,
                                             name = "page",
                                             description = "Page number (zero-based)",
-                                            required = false,
+                                            required = true,
                                             schema = @Schema(type = "integer")
                                     ),
                                     @Parameter(
                                             in = ParameterIn.QUERY,
                                             name = "size",
                                             description = "Number of elements per page",
-                                            required = false,
+                                            required = true,
                                             schema = @Schema(type = "integer")
                                     )
                             },
@@ -186,6 +186,84 @@ public class RouterRest {
                                                             )
                                                     }
                                     )),
+                                    @ApiResponse(
+                                            responseCode = "403",
+                                            description = "Forbidden",
+                                            content = @Content(
+                                                    mediaType = "text/plain",
+                                                    examples = {
+                                                            @ExampleObject(
+                                                                    value = "Access Denied"
+                                                            )
+                                                    }
+                                            )
+                                    )
+                            }
+                    )
+            ),
+            @RouterOperation(
+                    path = "/api/v1/solicitud",
+                    produces = { "application/json" },
+                    method = RequestMethod.PUT,
+                    operation = @Operation(
+                            operationId = "listenApproveOrRejectApplication",
+                            summary = "Aprobar o rechazar solicitudes",
+                            tags = { "Loan application" },
+                            parameters = {
+                                    @Parameter(
+                                            in = ParameterIn.QUERY,
+                                            name = "id",
+                                            description = "Application id",
+                                            required = true,
+                                            schema = @Schema(type = "long")
+                                    ),
+                                    @Parameter(
+                                            in = ParameterIn.QUERY,
+                                            name = "statusId",
+                                            description = "Status id",
+                                            required = true,
+                                            schema = @Schema(type = "long")
+                                    )
+                            },
+                            responses = {
+                                    @ApiResponse(responseCode = "200", description = "OK",
+                                            content = @Content(
+                                                    mediaType = "application/json",
+                                                    schema = @Schema(implementation = ApplicationDTO.class),
+                                                    examples = {
+                                                            @ExampleObject(
+                                                                    value = """
+                                                                        {
+                                                                            "id": 1,
+                                                                            "amount": 6000000.00,
+                                                                            "term": 12,
+                                                                            "email": "apedro@unicauca.edu.co",
+                                                                            "statusId": 2,
+                                                                            "loanTypeId": 2,
+                                                                            "identityDocument": "34561194"
+                                                                        }
+                                                                        """
+                                                            )
+                                                    }
+                                            )),
+                                    @ApiResponse(responseCode = "400", description = "Bad Request",
+                                            content = @Content(
+                                                    mediaType = "application/json",
+                                                    schema = @Schema(implementation = ApplicationDTO.class),
+                                                    examples = {
+                                                            @ExampleObject(
+                                                                    value = """
+                                                                        {
+                                                                            "message": "Validation errors",
+                                                                            "fields": {
+                                                                                "id": "Application not found",
+                                                                                "statusId": "Status not allowed. Only (4)APPROVED or (2)REJECTED are permitted"
+                                                                            }
+                                                                        }
+                                                                        """
+                                                            )
+                                                    }
+                                            )),
                                     @ApiResponse(
                                             responseCode = "403",
                                             description = "Forbidden",

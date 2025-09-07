@@ -1,6 +1,5 @@
 package co.com.pragma.api.dto;
 
-import co.com.pragma.api.common.validations.ValidationPatterns;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
