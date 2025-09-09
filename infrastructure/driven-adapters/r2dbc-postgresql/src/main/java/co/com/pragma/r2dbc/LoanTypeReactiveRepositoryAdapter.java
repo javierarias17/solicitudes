@@ -8,6 +8,8 @@ import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
+
 @Repository
 public class LoanTypeReactiveRepositoryAdapter extends ReactiveAdapterOperations<LoanType,LoanTypeEntity,Long,LoanTypeReactiveRepository
 > implements LoanTypeRepository {
@@ -17,7 +19,7 @@ public class LoanTypeReactiveRepositoryAdapter extends ReactiveAdapterOperations
     }
 
     @Override
-    public Mono<Boolean> existsById(Long id) {
-        return repository.existsById(id);
+    public Mono<LoanType> findByAmountInRange(BigDecimal amount) {
+        return repository.findByAmountInRange(amount).map(this::toEntity);
     }
 }

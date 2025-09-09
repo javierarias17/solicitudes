@@ -50,6 +50,9 @@ adapter:
   restconsumer:
     timeout: 5000
     url: "${REST_CONSUMER_AUTENTICACION}"
+  aws:
+    url: "${AWS_REST_CONSUMER}"
+    timeout: 5000
   sqs:
     region: "${AWS_REGION_SQS_QUEUE}"
     queueUrl: "${SQS_QUEUE_URL}"

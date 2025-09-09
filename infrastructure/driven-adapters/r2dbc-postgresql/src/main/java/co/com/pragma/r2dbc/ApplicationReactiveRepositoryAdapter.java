@@ -3,6 +3,7 @@ package co.com.pragma.r2dbc;
 import co.com.pragma.model.application.Application;
 import co.com.pragma.model.application.ApplicationSummary;
 import co.com.pragma.model.application.gateways.ApplicationRepository;
+import co.com.pragma.model.capacity.calculation.ActiveLoan;
 import co.com.pragma.r2dbc.entity.ApplicationEntity;
 import co.com.pragma.r2dbc.helper.ReactiveAdapterOperations;
 import org.reactivecommons.utils.ObjectMapper;
@@ -37,5 +38,10 @@ public class ApplicationReactiveRepositoryAdapter extends ReactiveAdapterOperati
     @Override
     public Flux<ApplicationSummary> findPendingApplicationsPaged(long limit, long offset){
         return repository.findPendingApplicationsPaged(limit, offset);
+    }
+
+    @Override
+    public Flux<ActiveLoan> findActiveLoan(String identityDocument) {
+        return repository.findActiveLoan(identityDocument);
     }
 }

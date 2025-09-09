@@ -1,6 +1,7 @@
 package co.com.pragma.r2dbc;
 
 import co.com.pragma.model.application.ApplicationSummary;
+import co.com.pragma.model.capacity.calculation.ActiveLoan;
 import co.com.pragma.r2dbc.entity.ApplicationEntity;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
@@ -32,4 +33,14 @@ public interface ApplicationReactiveRepository extends ReactiveCrudRepository<Ap
         LIMIT :limit OFFSET :offset
         """)
     Flux<ApplicationSummary> findPendingApplicationsPaged(long limit, long offset);
+
+    @Query("""
+        select a.amount,
+               a.term,
+               l.interest_rate
+        FROM application a JOIN loan_type l ON a.loan_type_id = l.loan_type_id
+        WHERE a.identity_document = :identityDocument
+        AND a.status_id = 4
+        """)
+    Flux<ActiveLoan> findActiveLoan(String identityDocument);
 }

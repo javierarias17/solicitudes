@@ -1,6 +1,6 @@
-package co.com.pragma.consumer.mapper;
+package co.com.pragma.consumer.app.mapper;
 
-import co.com.pragma.consumer.UserDTO;
+import co.com.pragma.consumer.app.dto.UserDTO;
 import co.com.pragma.model.application.User;
 import org.mapstruct.Mapper;
 

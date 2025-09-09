@@ -1,4 +1,4 @@
-package co.com.pragma.consumer;
+package co.com.pragma.consumer.app;
 
 import lombok.Builder;
 import lombok.AllArgsConstructor;

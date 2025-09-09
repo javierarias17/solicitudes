@@ -11,13 +11,12 @@ public record ApplicationDTO(Long id,
      @NotNull(message = "Term is required")
      @Min(value = 1, message = "Term must be at least 1")
      Long term,
-
      @JsonProperty(access = JsonProperty.Access.READ_ONLY)
      String email,
+     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
      Long statusId,
-     @NotNull(message = "Loan type is required")
+     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
      Long loanTypeId,
-
      @JsonProperty(access = JsonProperty.Access.READ_ONLY)
      String identityDocument
 ) {

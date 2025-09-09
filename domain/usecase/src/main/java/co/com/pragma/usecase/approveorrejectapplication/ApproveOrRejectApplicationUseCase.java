@@ -2,7 +2,7 @@ package co.com.pragma.usecase.approveorrejectapplication;
 
 import co.com.pragma.model.application.Application;
 import co.com.pragma.model.application.gateways.ApplicationRepository;
-import co.com.pragma.model.outport.NotificationQueueGateway;
+import co.com.pragma.model.outport.AwsQueueGateway;
 import co.com.pragma.usecase.approveorrejectapplication.inport.ApproveOrRejectApplicationUseCaseInPort;
 import co.com.pragma.usecase.exceptions.ValidationException;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ public class ApproveOrRejectApplicationUseCase implements ApproveOrRejectApplica
     private static final String REJECTED = "RECHAZADO";
     private static final String APPROVED = "APROBADO";
     private final ApplicationRepository applicationRepository;
-    private final NotificationQueueGateway notificationQueueGateway;
+    private final AwsQueueGateway awsQueueGateway;
 
     @Override
     public Mono<Application> execute(Long id, Long statusId) {
@@ -43,7 +43,7 @@ public class ApproveOrRejectApplicationUseCase implements ApproveOrRejectApplica
                     application.setStatusId(statusId);
                     return applicationRepository.saveApplication(application)
                             .flatMap(savedApp ->
-                                    notificationQueueGateway.sendNotification(
+                                    awsQueueGateway.sendNotification(
                                             savedApp.getEmail(),
                                             statusId.equals(APPROVED_STATUS_ID) ? APPROVED : REJECTED
                                     ).thenReturn(savedApp)

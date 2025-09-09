@@ -9,4 +9,7 @@ public class ValidationException extends BusinessException {
     public ValidationException(Map<String, String> errors) {
         super("Validation errors", errors);
     }
+    public ValidationException(String message) {
+        super(message);
+    }
 }

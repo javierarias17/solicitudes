@@ -2,7 +2,7 @@ package co.com.pragma.usecase.approveorrejectapplication;
 
 import co.com.pragma.model.application.Application;
 import co.com.pragma.model.application.gateways.ApplicationRepository;
-import co.com.pragma.model.outport.NotificationQueueGateway;
+import co.com.pragma.model.outport.AwsQueueGateway;
 import co.com.pragma.usecase.exceptions.ValidationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,7 +27,7 @@ class ApproveOrRejectApplicationUseCaseTest {
     private ApplicationRepository applicationRepository;
 
     @Mock
-    private NotificationQueueGateway notificationQueueGateway;
+    private AwsQueueGateway notificationQueueGateway;
 
     private Application buildApplication(Long id, Long statusId, String email) {
         return Application.builder().id(id).statusId(statusId).email(email).build();

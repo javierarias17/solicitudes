@@ -5,6 +5,7 @@ import io.netty.handler.timeout.WriteTimeoutHandler;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -21,6 +22,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 public class RestConsumerConfig {
     private final String url;
     private final int timeout;
+    private static final String INTERNAL_HEADER = "X-Internal-Request";
 
     public RestConsumerConfig(@Value("${adapter.restconsumer.url}") String url,
                               @Value("${adapter.restconsumer.timeout}") int timeout) {
@@ -28,7 +30,8 @@ public class RestConsumerConfig {
         this.timeout = timeout;
     }
 
-    @Bean
+    @Bean("webClient")
+    @Primary
     public WebClient getWebClient(WebClient.Builder builder) {
         return builder
                 .baseUrl(url)
@@ -36,7 +39,11 @@ public class RestConsumerConfig {
                 .filter((request, next) ->
                         getCurrentToken().flatMap(token -> {
                             ClientRequest newRequest = ClientRequest.from(request)
-                                    .headers(headers -> headers.setBearerAuth(token))
+                                    .headers(headers -> {
+                                        headers.setBearerAuth(token);
+                                        // TODO Pendiente implementar el cifrado para invocaciones internas
+                                        headers.add(INTERNAL_HEADER, "true");
+                                    })
                                     .build();
                             return next.exchange(newRequest);
                         })
