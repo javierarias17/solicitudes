@@ -28,19 +28,12 @@ public class RestConsumer implements AuthenticationGateway {
                 .lstIdentityDocument(lstIdentityDocument)
                 .build();
 
-        System.out.println(">>> [RestConsumer] Request body: " + request);
-
         return client
                 .post()
                 .uri(USERS_BY_IDENTITY_DOCUMENTS)
                 .bodyValue(request)
                 .exchangeToMono(response -> {
-                    System.out.println(">>> [RestConsumer] Response status: " + response.statusCode());
-
-                    // loguear el body crudo como String
                     return response.bodyToMono(String.class)
-                            .doOnNext(raw -> System.out.println(">>> [RestConsumer] Raw response body: " + raw))
-                            // mapear de nuevo el string a tu UserResponse
                             .flatMap(raw -> Mono.justOrEmpty(
                                     client
                                             .post()
@@ -53,17 +46,5 @@ public class RestConsumer implements AuthenticationGateway {
                 })
                 .map(UserResponse::getLstUserDTO)
                 .map(userDTOMapper::toModelList);
-
-        /*ObjectRequest request = ObjectRequest.builder()
-                .lstIdentityDocument(lstIdentityDocument)
-                .build();
-        return client
-                .post()
-                .uri(USERS_BY_IDENTITY_DOCUMENTS)
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(UserResponse.class)
-                .map(UserResponse::getLstUserDTO)
-                .map(userDTOMapper::toModelList);*/
     }
 }
