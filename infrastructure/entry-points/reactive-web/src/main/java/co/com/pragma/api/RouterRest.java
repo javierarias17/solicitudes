@@ -49,8 +49,7 @@ public class RouterRest {
                                                     value = """
                                                     {
                                                       "amount": 3000000,
-                                                      "term": 1,
-                                                      "loanTypeId": 1
+                                                      "term": 1
                                                     }
                                                     """
                                             )
@@ -85,8 +84,7 @@ public class RouterRest {
                                                     {
                                                       "fields": {
                                                             "amount": "Amount is required",
-                                                            "term": "Term is required",
-                                                            "loanTypeId": "Loan type is required"
+                                                            "term": "Term is required"
                                                       }
                                                     }
                                                     """
