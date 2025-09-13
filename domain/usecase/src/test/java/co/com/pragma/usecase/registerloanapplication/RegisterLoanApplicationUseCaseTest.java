@@ -10,7 +10,6 @@ import co.com.pragma.model.loantype.gateways.LoanTypeRepository;
 import co.com.pragma.model.outport.AuthenticationGateway;
 import co.com.pragma.model.outport.AwsQueueGateway;
 import co.com.pragma.model.outport.CapacityLambdaGateway;
-import co.com.pragma.model.status.gateways.StatusRepository;
 import co.com.pragma.usecase.exceptions.ValidationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,14 +30,16 @@ import static org.mockito.ArgumentMatchers.any;
 class RegisterLoanApplicationUseCaseTest {
 
     private static final BigDecimal APPLICATION_AMOUNT = BigDecimal.valueOf(1000.00);
+    private static final Long APPLICATION_TERM = 12L;
+    private static final Long APPLICATION_ID =1L;
+    private static final Long APPROVED_STATUS_ID=4L;
+    private static final Long REJECTED_STATUS_ID=2L;
 
     @InjectMocks
     private RegisterLoanApplicationUseCase registerLoanApplicationUseCase;
 
     @Mock
     private ApplicationRepository applicationRepository;
-    @Mock
-    private StatusRepository statusRepository;
     @Mock
     private LoanTypeRepository loanTypeRepository;
     @Mock
@@ -50,13 +51,13 @@ class RegisterLoanApplicationUseCaseTest {
 
     @Test
     void shouldThrowValidationExceptionWhenLoanTypeDoesNotExist() {
-        Application application = Application.builder()
+        Application app = Application.builder()
                 .amount(APPLICATION_AMOUNT)
-                .term(12L)
+                .term(APPLICATION_TERM)
                 .build();
-        when(loanTypeRepository.findByAmountInRange(application.getAmount())).thenReturn(Mono.empty());
+        when(loanTypeRepository.findByAmountInRange(app.getAmount())).thenReturn(Mono.empty());
 
-        Mono<Application> result = registerLoanApplicationUseCase.execute(application,"1061754493", "javierarias17.dll@gmail.com");
+        Mono<Application> result = registerLoanApplicationUseCase.execute(app,"1061754493", "javierarias17.dll@gmail.com");
 
         StepVerifier.create(result)
                 .expectErrorMatches(throwable ->
@@ -67,51 +68,79 @@ class RegisterLoanApplicationUseCaseTest {
 
     @Test
     void shouldCreateLoanApplicationWhenDataIsValid() {
-        Application application = Application.builder()
+        Application app = Application.builder()
                 .amount(APPLICATION_AMOUNT)
-                .term(12L)
+                .term(APPLICATION_TERM)
                 .build();
 
-        LoanType loanType = LoanType.builder().interestRate(12.0).id(1L).automaticValidation(Boolean.FALSE).build();
+        LoanType loanType = LoanType.builder().interestRate(12.0).id(10L).automaticValidation(Boolean.FALSE).build();
 
-        when(loanTypeRepository.findByAmountInRange(application.getAmount())).thenReturn(Mono.just(loanType));
+        when(loanTypeRepository.findByAmountInRange(app.getAmount())).thenReturn(Mono.just(loanType));
         when(applicationRepository.saveApplication(any(Application.class)))
-                .thenReturn(Mono.just(application.toBuilder().id(1L).build()));
+                .thenReturn(Mono.just(app.toBuilder().id(APPLICATION_ID).build()));
 
-        Mono<Application> result = registerLoanApplicationUseCase.execute(application, "1061754493", "javierarias17.dll@gmail.com");
+        Mono<Application> result = registerLoanApplicationUseCase.execute(app, "1061754493", "javierarias17.dll@gmail.com");
 
         StepVerifier.create(result)
-                .expectNextMatches(saved -> saved.getId().equals(1L))
+                .expectNextMatches(saved -> saved.getId().equals(APPLICATION_ID))
                 .verifyComplete();
     }
 
     @Test
-    void shouldCreateLoanApplicationWhenDataIsValidWithAutomaticValidation() {
+    void shouldCreateLoanApplicationWhenDataIsValidWithAutomaticValidationApproved() {
         String identityDocument = "1061754493";
         String email = "javierarias17.dll@gmail.com";
-        Application application = Application.builder()
+        Application app = Application.builder()
                 .amount(APPLICATION_AMOUNT)
-                .term(12L)
+                .term(APPLICATION_TERM)
                 .build();
 
-        LoanType loanType = LoanType.builder().interestRate(12.0).id(1L).automaticValidation(Boolean.TRUE).build();
+        LoanType loanType = LoanType.builder().interestRate(12.0).id(10L).automaticValidation(Boolean.TRUE).build();
         ActiveLoan activeLoan = new ActiveLoan(new BigDecimal("1500000"),6L , 12.5);
         User user=User.builder().baseSalary(new BigDecimal("5000000")).build();
-        CapacityOut capacityOut= new CapacityOut(2L, "APPROVED", List.of());
+        CapacityOut capacityOut= new CapacityOut(APPROVED_STATUS_ID, "APPROVED", List.of());
 
-        when(loanTypeRepository.findByAmountInRange(application.getAmount())).thenReturn(Mono.just(loanType));
+        when(loanTypeRepository.findByAmountInRange(app.getAmount())).thenReturn(Mono.just(loanType));
         when(applicationRepository.findActiveLoan(identityDocument)).thenReturn(Flux.just(activeLoan));
         when(authenticationGateway.getUsersByIdentityDocuments(List.of(identityDocument))).thenReturn(Mono.just(List.of(user)));
         when(lambdaGateway.calculateCapacity(any())).thenReturn(Mono.just(capacityOut));
-
         when(applicationRepository.saveApplication(any(Application.class)))
-                .thenReturn(Mono.just(application.toBuilder().id(1L).email(email).build()));
-        when(awsQueueGateway.sendLoanCapacityPaymentPlanQueue(1L,email, List.of())).thenReturn(Mono.empty());
+                .thenReturn(Mono.just(app.toBuilder().id(APPLICATION_ID).email(email).statusId(APPROVED_STATUS_ID).build()));
+        when(awsQueueGateway.sendLoanCapacityPaymentPlanQueue(APPLICATION_ID,email, List.of())).thenReturn(Mono.empty());
+        when(awsQueueGateway.sendApprovedLoansQueue(APPLICATION_AMOUNT)).thenReturn(Mono.empty());
 
-        Mono<Application> result = registerLoanApplicationUseCase.execute(application, identityDocument, email);
+        Mono<Application> result = registerLoanApplicationUseCase.execute(app, identityDocument, email);
 
         StepVerifier.create(result)
-                .expectNextMatches(saved -> saved.getId().equals(1L))
+                .expectNextMatches(saved -> saved.getId().equals(APPLICATION_ID) && saved.getStatusId().equals(APPROVED_STATUS_ID))
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldCreateLoanApplicationWhenDataIsValidWithAutomaticValidationRejected() {
+        String identityDocument = "1061754493";
+        String email = "javierarias17.dll@gmail.com";
+        Application app = Application.builder()
+                .amount(APPLICATION_AMOUNT)
+                .term(APPLICATION_TERM)
+                .build();
+
+        LoanType loanType = LoanType.builder().interestRate(12.0).id(10L).automaticValidation(Boolean.TRUE).build();
+        ActiveLoan activeLoan = new ActiveLoan(new BigDecimal("1500000"),6L , 12.5);
+        User user=User.builder().baseSalary(new BigDecimal("5000000")).build();
+        CapacityOut capacityOut= new CapacityOut(APPLICATION_ID, "REJECTED", List.of());
+
+        when(loanTypeRepository.findByAmountInRange(app.getAmount())).thenReturn(Mono.just(loanType));
+        when(applicationRepository.findActiveLoan(identityDocument)).thenReturn(Flux.just(activeLoan));
+        when(authenticationGateway.getUsersByIdentityDocuments(List.of(identityDocument))).thenReturn(Mono.just(List.of(user)));
+        when(lambdaGateway.calculateCapacity(any())).thenReturn(Mono.just(capacityOut));
+        when(applicationRepository.saveApplication(any(Application.class)))
+                .thenReturn(Mono.just(app.toBuilder().id(APPLICATION_ID).email(email).statusId(REJECTED_STATUS_ID).build()));
+
+        Mono<Application> result = registerLoanApplicationUseCase.execute(app, identityDocument, email);
+
+        StepVerifier.create(result)
+                .expectNextMatches(saved -> saved.getId().equals(APPLICATION_ID) && saved.getStatusId().equals(REJECTED_STATUS_ID))
                 .verifyComplete();
     }
 
@@ -120,18 +149,18 @@ class RegisterLoanApplicationUseCaseTest {
     void shouldFailWhenUserNotFoundDuringAutomaticValidation() {
         String identityDocument = "1061754493";
         String email = "julito123@outlook.com";
-        Application application = Application.builder()
+        Application app = Application.builder()
                 .amount(APPLICATION_AMOUNT)
-                .term(12L)
+                .term(APPLICATION_TERM)
                 .build();
 
-        LoanType loanType = LoanType.builder().interestRate(12.0).id(1L).automaticValidation(Boolean.TRUE).build();
+        LoanType loanType = LoanType.builder().interestRate(12.0).id(10L).automaticValidation(Boolean.TRUE).build();
 
-        when(loanTypeRepository.findByAmountInRange(application.getAmount())).thenReturn(Mono.just(loanType));
+        when(loanTypeRepository.findByAmountInRange(app.getAmount())).thenReturn(Mono.just(loanType));
         when(applicationRepository.findActiveLoan(identityDocument)).thenReturn(Flux.empty());
         when(authenticationGateway.getUsersByIdentityDocuments(List.of(identityDocument))).thenReturn(Mono.just(List.of()));
 
-        Mono<Application> result = registerLoanApplicationUseCase.execute(application, identityDocument, email);
+        Mono<Application> result = registerLoanApplicationUseCase.execute(app, identityDocument, email);
 
         StepVerifier.create(result)
                 .expectErrorMatches(throwable -> throwable instanceof RuntimeException &&

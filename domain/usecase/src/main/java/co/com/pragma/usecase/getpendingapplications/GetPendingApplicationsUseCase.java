@@ -39,11 +39,6 @@ public class GetPendingApplicationsUseCase implements GetPendingApplicationsUseC
 
                     return authenticationGateway.getUsersByIdentityDocuments(lstIdentityDocument)
                             .flatMapMany(users -> {
-
-                                /*if (page == 5) {
-                                    return Flux.error(new RuntimeException("Simulación de error en AuthenticationGateway"));
-                                }*/
-
                                 Map<String, User> usersByIdentityDocument = users.stream()
                                         .collect(Collectors.toMap(User::getIdentityDocument, u -> u));
 

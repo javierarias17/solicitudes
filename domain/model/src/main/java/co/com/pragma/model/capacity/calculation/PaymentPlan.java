@@ -4,8 +4,8 @@ import java.math.BigDecimal;
 
 public record PaymentPlan(
         Long month,
-        BigDecimal installment,//Cuota mensual
-        BigDecimal principalPayment,//Abono capital
+        BigDecimal installment,
+        BigDecimal principalPayment,
         Double interestRate,
-        BigDecimal remainingBalance//Saldo restante
+        BigDecimal remainingBalance
 ) {}

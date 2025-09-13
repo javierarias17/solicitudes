@@ -15,8 +15,8 @@ public class ApproveOrRejectApplicationUseCase implements ApproveOrRejectApplica
     private static final Long REJECT_STATUS_ID=2L;
     private static final Long APPROVED_STATUS_ID=4L;
     private static final String STATUS_ID = "statusId";
-    private static final String REJECTED = "RECHAZADO";
-    private static final String APPROVED = "APROBADO";
+    private static final String REJECTED = "REJECTED";
+    private static final String APPROVED = "APPROVED";
     private final ApplicationRepository applicationRepository;
     private final AwsQueueGateway awsQueueGateway;
 
@@ -43,9 +43,15 @@ public class ApproveOrRejectApplicationUseCase implements ApproveOrRejectApplica
                     application.setStatusId(statusId);
                     return applicationRepository.saveApplication(application)
                             .flatMap(savedApp ->
-                                    awsQueueGateway.sendNotification(
-                                            savedApp.getEmail(),
-                                            statusId.equals(APPROVED_STATUS_ID) ? APPROVED : REJECTED
+                                    Mono.when(
+                                            //HU06
+                                            awsQueueGateway.sendNotificationQueue(
+                                                savedApp.getEmail(),
+                                                statusId.equals(APPROVED_STATUS_ID) ? APPROVED : REJECTED
+                                            ).onErrorResume(e -> Mono.empty()),
+                                            //HU08-09
+                                            statusId.equals(APPROVED_STATUS_ID) ? awsQueueGateway.sendApprovedLoansQueue(savedApp.getAmount())
+                                            .onErrorResume(e -> Mono.empty()): Mono.empty()
                                     ).thenReturn(savedApp)
                             );
                 });

@@ -11,6 +11,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -22,16 +23,16 @@ public class SQSSender implements AwsQueueGateway {
 
     public static final String NOTIFICATION_QUEUE = "/notificationQueue";
     public static final String LOAN_CAPACITY_PAYMENT_PLAN_QUEUE = "/loanCapacityPaymentPlanQueue";
-
+    public static final String APPROVED_LOANS_QUEUE = "/approvedLoansQueue";
 
     public Mono<String> send(String message, String url) {
         return Mono.fromCallable(() -> buildRequest(message, url))
-                .doOnNext(request -> log.info("Enviando mensaje a SQS. QueueUrl={}, Body={}",
+                .doOnNext(request -> log.info("Sending message to SQS. QueueUrl={}, Body={}",
                         request.queueUrl(), request.messageBody()))
                 .flatMap(request -> Mono.fromFuture(client.sendMessage(request)))
-                .doOnNext(response -> log.info("Mensaje enviado correctamente. MessageId={}",
+                .doOnNext(response -> log.info("Sending message successfully. MessageId={}",
                         response.messageId()))
-                .doOnError(error -> log.error("Error al enviar mensaje a SQS", error))
+                .doOnError(error -> log.error("Error to sending message to SQS", error))
                 .map(SendMessageResponse::messageId);
     }
 
@@ -43,7 +44,7 @@ public class SQSSender implements AwsQueueGateway {
     }
 
     @Override
-    public Mono<String> sendNotification(String email, String statusName) {
+    public Mono<String> sendNotificationQueue(String email, String statusName) {
         return send(String.format("{\"email\": \"%s\", \"status\": \"%s\"}", email, statusName), NOTIFICATION_QUEUE);
     }
 
@@ -71,4 +72,8 @@ public class SQSSender implements AwsQueueGateway {
         return send(jsonMessage, LOAN_CAPACITY_PAYMENT_PLAN_QUEUE);
     }
 
+    @Override
+    public Mono<String> sendApprovedLoansQueue(BigDecimal amount) {
+        return send(String.format("{\"amount\": \"%s\"}",amount), APPROVED_LOANS_QUEUE);
+    }
 }

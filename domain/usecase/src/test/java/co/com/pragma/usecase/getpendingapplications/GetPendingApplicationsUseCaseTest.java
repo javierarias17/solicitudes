@@ -157,13 +157,13 @@ class GetPendingApplicationsUseCaseTest {
     @Test
     void shouldPropagateErrorWhenRepositoryFails() {
         when(applicationRepository.findPendingApplicationsPaged(10, 0))
-                .thenReturn(Flux.error(new RuntimeException("Error databaste")));
+                .thenReturn(Flux.error(new RuntimeException("Error DB")));
 
         Flux<ApplicationSummary> result = getPendingApplicationsUseCase.execute(0, 10);
 
         StepVerifier.create(result)
                 .expectErrorMatches(throwable -> throwable instanceof RuntimeException &&
-                        throwable.getMessage().equals("Error databaste"))
+                        throwable.getMessage().equals("Error DB"))
                 .verify();
     }
 

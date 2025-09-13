@@ -12,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -29,8 +30,8 @@ class ApproveOrRejectApplicationUseCaseTest {
     @Mock
     private AwsQueueGateway notificationQueueGateway;
 
-    private Application buildApplication(Long id, Long statusId, String email) {
-        return Application.builder().id(id).statusId(statusId).email(email).build();
+    private Application buildApplication(Long statusId, BigDecimal amount) {
+        return Application.builder().id(1L).statusId(statusId).email("javierarias17.dll@gmail.com").amount(amount).build();
     }
 
     @Test
@@ -46,7 +47,7 @@ class ApproveOrRejectApplicationUseCaseTest {
 
     @Test
     void shouldReturnErrorWhenStatusIsTheSame() {
-        Application app = buildApplication(1L, 4L, "javierarias17.dll@gmail.com");
+        Application app = buildApplication( 4L, new BigDecimal("500000"));
         when(applicationRepository.findById(1L)).thenReturn(Mono.just(app));
 
         StepVerifier.create(useCase.execute(1L, 4L))
@@ -58,7 +59,7 @@ class ApproveOrRejectApplicationUseCaseTest {
 
     @Test
     void shouldReturnErrorWhenStatusNotAllowed() {
-        Application app = buildApplication(1L, 1L, "javierarias17.dll@gmail.com");
+        Application app = buildApplication( 1L, new BigDecimal("500000"));
         when(applicationRepository.findById(1L)).thenReturn(Mono.just(app));
 
         StepVerifier.create(useCase.execute(1L, 3L))
@@ -70,33 +71,34 @@ class ApproveOrRejectApplicationUseCaseTest {
 
     @Test
     void shouldApproveApplicationSuccessfully() {
-        Application app = buildApplication(1L, 1L, "javierarias17.dll@gmail.com");
-        Application savedApp = buildApplication(1L, 4L, "javierarias17.dll@gmail.com");
+        Application app = buildApplication(1L,  new BigDecimal("500000"));
+        Application savedApp = buildApplication( 4L,  new BigDecimal("500000"));
 
         when(applicationRepository.findById(1L)).thenReturn(Mono.just(app));
         when(applicationRepository.saveApplication(any(Application.class))).thenReturn(Mono.just(savedApp));
-        when(notificationQueueGateway.sendNotification("javierarias17.dll@gmail.com", "APROBADO")).thenReturn(Mono.empty());
+        when(notificationQueueGateway.sendNotificationQueue(savedApp.getEmail(), "APPROVED")).thenReturn(Mono.empty());
+        when(notificationQueueGateway.sendApprovedLoansQueue(savedApp.getAmount())).thenReturn(Mono.empty());
 
         StepVerifier.create(useCase.execute(1L, 4L))
                 .expectNextMatches(result ->
                         result.getStatusId().equals(4L) &&
-                                result.getEmail().equals("javierarias17.dll@gmail.com"))
+                                result.getEmail().equals(savedApp.getEmail()))
                 .verifyComplete();
     }
 
     @Test
     void shouldRejectApplicationSuccessfully() {
-        Application app = buildApplication(1L, 1L, "javierarias17.dll@gmail.com");
-        Application savedApp = buildApplication(1L, 2L, "javierarias17.dll@gmail.com");
+        Application app = buildApplication( 1L,new BigDecimal("500000"));
+        Application savedApp = buildApplication( 2L, new BigDecimal("500000"));
 
         when(applicationRepository.findById(1L)).thenReturn(Mono.just(app));
         when(applicationRepository.saveApplication(any(Application.class))).thenReturn(Mono.just(savedApp));
-        when(notificationQueueGateway.sendNotification("javierarias17.dll@gmail.com", "RECHAZADO")).thenReturn(Mono.empty());
+        when(notificationQueueGateway.sendNotificationQueue(savedApp.getEmail(), "REJECTED")).thenReturn(Mono.empty());
 
         StepVerifier.create(useCase.execute(1L, 2L))
                 .expectNextMatches(result ->
                         result.getStatusId().equals(2L) &&
-                                result.getEmail().equals("javierarias17.dll@gmail.com"))
+                                result.getEmail().equals(savedApp.getEmail()))
                 .verifyComplete();
     }
 }

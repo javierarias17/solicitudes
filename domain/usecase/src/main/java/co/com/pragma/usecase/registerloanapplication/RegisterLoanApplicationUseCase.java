@@ -19,6 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RegisterLoanApplicationUseCase implements RegisterLoanApplicationUseCaseInPort {
 
+    private static final Long APPROVED_STATUS_ID=4L;
     private static final Long PENDING_REVIEW_STATUS_ID=1L;
     private final ApplicationRepository applicationRepository;
     private final AuthenticationGateway authenticationGateway;
@@ -70,13 +71,22 @@ public class RegisterLoanApplicationUseCase implements RegisterLoanApplicationUs
                                             .flatMap(capacityOut -> {
                                                 application.setStatusId(capacityOut.statusId());
                                                 return applicationRepository.saveApplication(application)
-                                                        .flatMap(savedApp ->
-                                                                awsQueueGateway.sendLoanCapacityPaymentPlanQueue(
-                                                                        savedApp.getId(),
-                                                                        savedApp.getEmail(),
-                                                                        capacityOut.paymentPlans()
-                                                                ).thenReturn(savedApp)
-                                                        );
+                                                        .flatMap(savedApp -> {
+
+                                                            if (savedApp.getStatusId().equals(APPROVED_STATUS_ID)) {
+                                                                //HU07
+                                                                return awsQueueGateway.sendLoanCapacityPaymentPlanQueue(
+                                                                                savedApp.getId(),
+                                                                                savedApp.getEmail(),
+                                                                                capacityOut.paymentPlans()
+                                                                        ).onErrorResume(e -> Mono.empty())
+                                                                        //HU08-09
+                                                                        .then(awsQueueGateway.sendApprovedLoansQueue(savedApp.getAmount()))
+                                                                        .onErrorResume(e -> Mono.empty())
+                                                                        .thenReturn(savedApp);
+                                                            }
+                                                            return Mono.just(savedApp);
+                                                        });
                                             });
                                 });
                     }
