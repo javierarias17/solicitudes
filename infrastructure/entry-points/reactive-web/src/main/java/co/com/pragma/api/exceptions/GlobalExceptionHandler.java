@@ -1,7 +1,6 @@
 package co.com.pragma.api.exceptions;
 
 import co.com.pragma.usecase.exceptions.BusinessException;
-import co.com.pragma.usecase.exceptions.InvalidTokenException;
 import co.com.pragma.usecase.exceptions.ValidationException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;

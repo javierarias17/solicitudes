@@ -7,27 +7,31 @@ import co.com.pragma.model.capacity.calculation.CapacityIn;
 import co.com.pragma.model.capacity.calculation.CapacityOut;
 import co.com.pragma.model.outport.CapacityLambdaGateway;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 @Service
-@RequiredArgsConstructor
 public class AwsConsumer implements CapacityLambdaGateway {
 
-    @Autowired
-    @Qualifier("awsClient") @NonNull
     private final WebClient lambdaClient;
     private final CapacidadMapper capacidadMapper;
     private final ObjectMapper objectMapper;
     public static final String CAPACITY_CALCULATE = "/api/v1/calcular-capacidad";
     private static final Logger log = LoggerFactory.getLogger(AwsConsumer.class);
+
+    public AwsConsumer(
+            @Qualifier("awsClient") WebClient lambdaClient,
+            CapacidadMapper capacidadMapper,
+            ObjectMapper objectMapper
+    ) {
+        this.lambdaClient = lambdaClient;
+        this.capacidadMapper = capacidadMapper;
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public Mono<CapacityOut> calculateCapacity(CapacityIn capacityIn) {

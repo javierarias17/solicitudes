@@ -8,7 +8,7 @@ import co.com.pragma.model.capacity.calculation.CapacityOut;
 import co.com.pragma.model.loantype.LoanType;
 import co.com.pragma.model.loantype.gateways.LoanTypeRepository;
 import co.com.pragma.model.outport.AuthenticationGateway;
-import co.com.pragma.model.outport.AwsQueueGateway;
+import co.com.pragma.model.outport.QueueGateway;
 import co.com.pragma.model.outport.CapacityLambdaGateway;
 import co.com.pragma.usecase.exceptions.ValidationException;
 import org.junit.jupiter.api.Test;
@@ -47,7 +47,7 @@ class RegisterLoanApplicationUseCaseTest {
     @Mock
     private CapacityLambdaGateway lambdaGateway;
     @Mock
-    private AwsQueueGateway awsQueueGateway;
+    private QueueGateway queueGateway;
 
     @Test
     void shouldThrowValidationExceptionWhenLoanTypeDoesNotExist() {
@@ -106,8 +106,8 @@ class RegisterLoanApplicationUseCaseTest {
         when(lambdaGateway.calculateCapacity(any())).thenReturn(Mono.just(capacityOut));
         when(applicationRepository.saveApplication(any(Application.class)))
                 .thenReturn(Mono.just(app.toBuilder().id(APPLICATION_ID).email(email).statusId(APPROVED_STATUS_ID).build()));
-        when(awsQueueGateway.sendLoanCapacityPaymentPlanQueue(APPLICATION_ID,email, List.of())).thenReturn(Mono.empty());
-        when(awsQueueGateway.sendApprovedLoansQueue(APPLICATION_AMOUNT)).thenReturn(Mono.empty());
+        when(queueGateway.sendLoanCapacityPaymentPlanQueue(APPLICATION_ID,email, List.of())).thenReturn(Mono.empty());
+        when(queueGateway.sendApprovedLoansQueue(APPLICATION_AMOUNT)).thenReturn(Mono.empty());
 
         Mono<Application> result = registerLoanApplicationUseCase.execute(app, identityDocument, email);
 

@@ -2,7 +2,7 @@ package co.com.pragma.usecase.approveorrejectapplication;
 
 import co.com.pragma.model.application.Application;
 import co.com.pragma.model.application.gateways.ApplicationRepository;
-import co.com.pragma.model.outport.AwsQueueGateway;
+import co.com.pragma.model.outport.QueueGateway;
 import co.com.pragma.usecase.approveorrejectapplication.inport.ApproveOrRejectApplicationUseCaseInPort;
 import co.com.pragma.usecase.exceptions.ValidationException;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ public class ApproveOrRejectApplicationUseCase implements ApproveOrRejectApplica
     private static final String REJECTED = "REJECTED";
     private static final String APPROVED = "APPROVED";
     private final ApplicationRepository applicationRepository;
-    private final AwsQueueGateway awsQueueGateway;
+    private final QueueGateway queueGateway;
 
     @Override
     public Mono<Application> execute(Long id, Long statusId) {
@@ -45,12 +45,12 @@ public class ApproveOrRejectApplicationUseCase implements ApproveOrRejectApplica
                             .flatMap(savedApp ->
                                     Mono.when(
                                             //HU06
-                                            awsQueueGateway.sendNotificationQueue(
+                                            queueGateway.sendNotificationQueue(
                                                 savedApp.getEmail(),
                                                 statusId.equals(APPROVED_STATUS_ID) ? APPROVED : REJECTED
                                             ).onErrorResume(e -> Mono.empty()),
                                             //HU08-09
-                                            statusId.equals(APPROVED_STATUS_ID) ? awsQueueGateway.sendApprovedLoansQueue(savedApp.getAmount())
+                                            statusId.equals(APPROVED_STATUS_ID) ? queueGateway.sendApprovedLoansQueue(savedApp.getAmount())
                                             .onErrorResume(e -> Mono.empty()): Mono.empty()
                                     ).thenReturn(savedApp)
                             );

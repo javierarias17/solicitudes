@@ -1,7 +1,7 @@
 package co.com.pragma.sqs.sender;
 
 import co.com.pragma.model.capacity.calculation.PaymentPlan;
-import co.com.pragma.model.outport.AwsQueueGateway;
+import co.com.pragma.model.outport.QueueGateway;
 import co.com.pragma.sqs.sender.config.SQSSenderProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -17,7 +17,7 @@ import java.util.List;
 @Service
 @Log4j2
 @RequiredArgsConstructor
-public class SQSSender implements AwsQueueGateway {
+public class SQSSender implements QueueGateway {
     private final SQSSenderProperties properties;
     private final SqsAsyncClient client;
 

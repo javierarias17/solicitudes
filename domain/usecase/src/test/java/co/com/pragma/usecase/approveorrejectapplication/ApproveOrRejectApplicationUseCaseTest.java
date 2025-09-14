@@ -2,7 +2,7 @@ package co.com.pragma.usecase.approveorrejectapplication;
 
 import co.com.pragma.model.application.Application;
 import co.com.pragma.model.application.gateways.ApplicationRepository;
-import co.com.pragma.model.outport.AwsQueueGateway;
+import co.com.pragma.model.outport.QueueGateway;
 import co.com.pragma.usecase.exceptions.ValidationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,7 +28,7 @@ class ApproveOrRejectApplicationUseCaseTest {
     private ApplicationRepository applicationRepository;
 
     @Mock
-    private AwsQueueGateway notificationQueueGateway;
+    private QueueGateway queueGateway;
 
     private Application buildApplication(Long statusId, BigDecimal amount) {
         return Application.builder().id(1L).statusId(statusId).email("javierarias17.dll@gmail.com").amount(amount).build();
@@ -76,8 +76,8 @@ class ApproveOrRejectApplicationUseCaseTest {
 
         when(applicationRepository.findById(1L)).thenReturn(Mono.just(app));
         when(applicationRepository.saveApplication(any(Application.class))).thenReturn(Mono.just(savedApp));
-        when(notificationQueueGateway.sendNotificationQueue(savedApp.getEmail(), "APPROVED")).thenReturn(Mono.empty());
-        when(notificationQueueGateway.sendApprovedLoansQueue(savedApp.getAmount())).thenReturn(Mono.empty());
+        when(queueGateway.sendNotificationQueue(savedApp.getEmail(), "APPROVED")).thenReturn(Mono.empty());
+        when(queueGateway.sendApprovedLoansQueue(savedApp.getAmount())).thenReturn(Mono.empty());
 
         StepVerifier.create(useCase.execute(1L, 4L))
                 .expectNextMatches(result ->
@@ -93,7 +93,7 @@ class ApproveOrRejectApplicationUseCaseTest {
 
         when(applicationRepository.findById(1L)).thenReturn(Mono.just(app));
         when(applicationRepository.saveApplication(any(Application.class))).thenReturn(Mono.just(savedApp));
-        when(notificationQueueGateway.sendNotificationQueue(savedApp.getEmail(), "REJECTED")).thenReturn(Mono.empty());
+        when(queueGateway.sendNotificationQueue(savedApp.getEmail(), "REJECTED")).thenReturn(Mono.empty());
 
         StepVerifier.create(useCase.execute(1L, 2L))
                 .expectNextMatches(result ->

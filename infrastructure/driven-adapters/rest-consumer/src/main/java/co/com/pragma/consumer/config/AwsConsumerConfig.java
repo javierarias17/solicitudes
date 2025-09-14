@@ -17,11 +17,16 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 @Configuration
 public class AwsConsumerConfig {
 
-    @Value("${adapter.aws.url}")
-    private String lambdaUrl;
+    private final String lambdaUrl;
+    private final int timeout;
 
-    @Value("${adapter.aws.timeout:5000}")
-    private int timeout;
+    public AwsConsumerConfig(
+            @Value("${adapter.aws.url}") String lambdaUrl,
+            @Value("${adapter.aws.timeout:5000}") int timeout
+    ) {
+        this.lambdaUrl = lambdaUrl;
+        this.timeout = timeout;
+    }
 
     @Bean("awsClient")
     public WebClient getLambdaClient(WebClient.Builder builder) {

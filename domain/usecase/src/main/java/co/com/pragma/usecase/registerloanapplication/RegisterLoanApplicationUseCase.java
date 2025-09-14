@@ -6,7 +6,7 @@ import co.com.pragma.model.capacity.calculation.ActiveLoan;
 import co.com.pragma.model.capacity.calculation.CapacityIn;
 import co.com.pragma.model.loantype.gateways.LoanTypeRepository;
 import co.com.pragma.model.outport.AuthenticationGateway;
-import co.com.pragma.model.outport.AwsQueueGateway;
+import co.com.pragma.model.outport.QueueGateway;
 import co.com.pragma.model.outport.CapacityLambdaGateway;
 import co.com.pragma.usecase.exceptions.ValidationException;
 import co.com.pragma.usecase.registerloanapplication.inport.RegisterLoanApplicationUseCaseInPort;
@@ -25,7 +25,7 @@ public class RegisterLoanApplicationUseCase implements RegisterLoanApplicationUs
     private final AuthenticationGateway authenticationGateway;
     private final LoanTypeRepository loanTypeRepository;
     private final CapacityLambdaGateway lambdaGateway;
-    private final  AwsQueueGateway awsQueueGateway;
+    private final QueueGateway queueGateway;
 
     @Override
     public Mono<Application> execute(Application application, String identityDocumentToken, String emailToken) {
@@ -75,13 +75,13 @@ public class RegisterLoanApplicationUseCase implements RegisterLoanApplicationUs
 
                                                             if (savedApp.getStatusId().equals(APPROVED_STATUS_ID)) {
                                                                 //HU07
-                                                                return awsQueueGateway.sendLoanCapacityPaymentPlanQueue(
+                                                                return queueGateway.sendLoanCapacityPaymentPlanQueue(
                                                                                 savedApp.getId(),
                                                                                 savedApp.getEmail(),
                                                                                 capacityOut.paymentPlans()
                                                                         ).onErrorResume(e -> Mono.empty())
                                                                         //HU08-09
-                                                                        .then(awsQueueGateway.sendApprovedLoansQueue(savedApp.getAmount()))
+                                                                        .then(queueGateway.sendApprovedLoansQueue(savedApp.getAmount()))
                                                                         .onErrorResume(e -> Mono.empty())
                                                                         .thenReturn(savedApp);
                                                             }

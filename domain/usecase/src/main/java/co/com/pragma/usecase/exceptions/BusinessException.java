@@ -5,7 +5,7 @@ import lombok.Getter;
 import java.util.Map;
 
 @Getter
-public abstract class BusinessException extends RuntimeException { // <- abstract
+public abstract class BusinessException extends RuntimeException {
     private final Map<String, String> errors;
 
     protected BusinessException(String message) {

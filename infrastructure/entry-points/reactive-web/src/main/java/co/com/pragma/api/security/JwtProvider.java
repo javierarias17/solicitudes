@@ -19,10 +19,16 @@ public class JwtProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtProvider.class);
 
-    @Value("${jwt.secret}")
-    private String secret;
-    @Value("${jwt.expiration}")
-    private Integer expiration;
+    private final String expiration;
+    private final String secret;
+
+    public JwtProvider(
+            @Value("${jwt.expiration}") String expiration,
+            @Value("${jwt.secret}") String secret
+    ) {
+        this.expiration = expiration;
+        this.secret = secret;
+    }
 
     public Claims getPayload(String token) {
         return Jwts.parser()
