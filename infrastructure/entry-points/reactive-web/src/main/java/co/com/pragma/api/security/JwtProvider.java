@@ -1,11 +1,11 @@
 package co.com.pragma.api.security;
 
+import co.com.pragma.api.dto.JwtSecretDTO;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
@@ -18,16 +18,10 @@ import java.util.Map;
 public class JwtProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtProvider.class);
-
-    private final String expiration;
     private final String secret;
 
-    public JwtProvider(
-            @Value("${jwt.expiration}") String expiration,
-            @Value("${jwt.secret}") String secret
-    ) {
-        this.expiration = expiration;
-        this.secret = secret;
+    public JwtProvider(JwtSecretDTO jwtSecretDTO) {
+        this.secret = jwtSecretDTO.secret();
     }
 
     public Claims getPayload(String token) {

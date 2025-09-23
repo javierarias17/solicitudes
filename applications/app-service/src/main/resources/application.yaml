@@ -10,7 +10,7 @@ spring:
       enabled: "${H2_CONSOLE_ENABLED}"
       path: "${H2_CONSOLE_PATH}"
   profiles:
-    include: null
+    active: "${PROFILE_ACTIVE}"
 management:
   endpoints:
     web:
@@ -44,8 +44,7 @@ adapters:
     port: "${DB_PORT}"
     database: "${DB_NAME}"
     schema: "${DB_SCHEMA}"
-    username: "${DB_USER}"
-    password: "${DB_PASSWORD}"
+
 adapter:
   restconsumer:
     timeout: 5000
@@ -56,7 +55,6 @@ adapter:
   sqs:
     region: "${AWS_REGION_SQS_QUEUE}"
     queueUrl: "${SQS_QUEUE_URL}"
-    #endpoint:
 resilience4j:
   circuitbreaker:
     instances:
@@ -78,6 +76,3 @@ resilience4j:
         slidingWindowSize: 10
         minimumNumberOfCalls: 10
         waitDurationInOpenState: "10s"
-jwt:
-  secret: "${JWT_SECRET}"
-  expiration: "${JWT_EXPIRATION}"

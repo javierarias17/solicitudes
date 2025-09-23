@@ -1,6 +1,7 @@
 package co.com.pragma.api.security;
 
 public enum Role {
+    INTERNAL("0"),
     ADMINISTRATOR("1"),
     ADVISOR("2"),
     APPLICANT("3");
